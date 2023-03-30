@@ -15,7 +15,6 @@ class UserInstance {
       email,
       password,
     };
-    return
     let userModel = new User(data);
     const dbUser = await userModel.save();
     let user = dbUser.toJSON()
