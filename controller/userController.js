@@ -1,14 +1,13 @@
-const { promisify } = require('util')
-const fs = require('fs')
+// const { promisify } = require('util')
+// const fs = require('fs')
 const { User } = require('../model/MongoTable')
 // const Joi = require('joi'); //可以进行验证
 const Bcrypt = require('../utils/md5') //加密解密
 const jwt = require('../utils/jwt') //token
-const rename = promisify(fs.rename)
+// const rename = promisify(fs.rename) //修改文件名
 
 class UserInstance {
   static userController = new UserInstance()
-
   /**
  * 注册
  */
@@ -60,7 +59,7 @@ class UserInstance {
       if (!passwordMatches) {
         return res.status(402).json({ status: 402, message: '无效的用户名或密码' });
       }
-      // user["password"] = undefined
+      user["password"] = undefined
       const token = jwt.generateToken(user) //存储token
       return res.status(200).json({ data: user, token, status: 200, message: '登录成功' });
     } catch (error) {
@@ -89,16 +88,15 @@ class UserInstance {
  * 头像上传
  */
   async headimg (req, res) {
-    console.log('req', req.file);
-
-    let fileFormat = req.file.originalname.lastIndexOf('.')
-    let format = req.file.originalname.slice(fileFormat)
-    try {
-      rename('./public/' + req.file.filename, `./public/` + req.file.filename + format) //修改文件名
-      res.status(201).json({ filepath: req.file.filename + format })
-    } catch (err) {
-      res.status(500).json({ error: err })
-    }
+    console.log('req', req.file, req.user._id);
+    // let fileFormat = req.file.originalname.lastIndexOf('.')
+    // let format = req.file.originalname.slice(fileFormat)
+    // try {
+    //   rename(`./public/${req.url}` + req.file.filename, `./public/${req.url}` + req.file.filename + format) //修改文件名
+    //   res.status(201).json({ filepath: req.file.filename + format })
+    // } catch (err) {
+    //   res.status(500).json({ error: err })
+    // }
   }
 
   /**

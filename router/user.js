@@ -3,8 +3,10 @@ const router = express.Router()
 const userController = require('../controller/userController')
 const validator = require('../middleware/validator/Uservalidator')
 const jwt = require('../utils/jwt').verifyToken
-const multer = require('multer')
-const upload = multer({ dest: 'public/' })
+const multer = require("multer");
+const file = require('../utils/file') //配置上传的路径及文件夹，文件名
+const upload = multer({ storage: file.storage, dest: 'public/' });
+
 // 校验规则
 /**
  *   .post('/register',
