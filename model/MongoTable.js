@@ -1,24 +1,32 @@
 // 创建表对象，也就是数据
 const mongoose = require("mongoose");
 const db = require("./index");
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 const baseModel = require('./baseModel')
 // 用户表
-var userSchema = new Schema({
+const userSchema = new Schema({
   username: { type: String, require: true },//用户名
-  password: { type: String, require: true },//密码
+  password: { type: String, require: true },//密码,select为false查询时不返回
   email: { type: String, require: true },//邮箱
   sex: { type: String, default: "1" },//性别
   birth: { type: Date }, //生日
-  phone: { type: Number },//手机
+  phone: { type: String, default: '1300000001' },//手机
   explain: { type: String }, //介绍
   profile: { type: String, default: "user.png" },//头像
   code: { type: String, default: '' },
+  cover: {
+    type: String,
+    default: null
+  }, //频道封面
+  channeldes: {
+    type: String,
+    default: null
+  },//频道描述
   ...baseModel
 });
 
 // 好友表
-var FriendSchema = new Schema({
+const FriendSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   friendID: { type: Schema.Types.ObjectId, ref: "User" }, //好友id
   state: { type: String }, //好友状态(0已是好友，1有申请(待同意)，2表示申请方，对方还未同意)
@@ -30,7 +38,7 @@ var FriendSchema = new Schema({
 });
 
 // 一对一消息表
-var MessageSchema = new Schema({
+const MessageSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   friendID: { type: Schema.Types.ObjectId, ref: "User" }, //好友id
   message: { type: String }, //内容
@@ -40,7 +48,7 @@ var MessageSchema = new Schema({
 });
 
 // 群表
-var GroupSchema = new Schema({
+const GroupSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id(创建者)
   name: { type: String }, //群名称
   imgurl: { type: String, default: "group.png" }, //群头像
@@ -49,7 +57,7 @@ var GroupSchema = new Schema({
 });
 
 //群成员表
-var GroupUserSchema = new Schema({
+const GroupUserSchema = new Schema({
   GroupID: { type: Schema.Types.ObjectId, ref: "Group" }, //群id
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   name: { type: String }, //群内名称
@@ -62,7 +70,7 @@ var GroupUserSchema = new Schema({
 });
 
 //群消息表
-var GroupMsgSchema = new Schema({
+const GroupMsgSchema = new Schema({
   GroupID: { type: Schema.Types.ObjectId, ref: "Group" }, //群id
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   message: { type: String }, //内容

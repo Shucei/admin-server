@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const userController = require('../controller/userController')
 const validator = require('../middleware/validator/Uservalidator')
-
+const jwt = require('../utils/jwt').verifyToken
+const multer = require('multer')
+const upload = multer({ dest: 'public/' })
 // 校验规则
 /**
  *   .post('/register',
@@ -21,5 +23,9 @@ router
   .post('/register',
     validator.register,
     userController.getchannel)
-
+  .post('/login', validator.login, userController.login)
+  .get('/lists', jwt, userController.getlList)
+  .put('/', jwt, validator.update, userController.updatedUser)
+  .post('/headimg', jwt, upload.single('headimg'), userController.headimg)
+  .delete('/', jwt, userController.deleteUser)
 module.exports = router 

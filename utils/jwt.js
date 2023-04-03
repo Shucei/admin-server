@@ -1,24 +1,26 @@
 const jwt = require("jsonwebtoken");
-let secret = "shujingshishuaiguo";
+let secret = "shujingshishuaiguo"; //私钥
 class jwtInstance {
   static jwt = new jwtInstance()
   // 生成token
-  generateToken () {
-    let payload = { id: id, time: new Date() };
-    let token = jwt.sign(payload, secret, { expiresIn: 60 * 60 * 24 * 120 });
+  generateToken (id, res) {
+    let payload = { id };
+    let token = jwt.sign(payload, secret, { expiresIn: 60 * 60 * 24 }); //设置一个小时
     return token;
   }
   // 解码token
-  verifyToken () {
-    let payload;
-    jwt.verify(e, secret, function (err, result) {
+  verifyToken (req, res, next) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ status: 401, error: '身份验证失败' });
+    }
+    jwt.verify(token, secret, (err, decoded) => {
       if (err) {
-        payload = 0;
-      } else {
-        payload = 1;
+        return res.status(401).json({ status: 401, error: '身份验证失败' });
       }
+      req.user = decoded.id;
+      next();
     });
-    return payload;
   }
 }
 module.exports = jwtInstance.jwt
