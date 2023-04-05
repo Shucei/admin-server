@@ -67,12 +67,20 @@ class UserInstance {
     }
   }
 
+
   /**
    * 获取用户列表
    */
-  getlList (req, res) {
-    res.json('6666')
+  async getlList (req, res) {
+    try {
+      const data = await User.find({})
+      res.status(200).json({ data: data })
+    } catch (err) {
+      res.status(200).json({ error: err })
+    }
+
   }
+
 
   /**
    * 用户修改
@@ -81,7 +89,7 @@ class UserInstance {
     // 通过id查找并修改,req.user在jwt处定义
     let id = req.user._id
     const updateData = await User.findByIdAndUpdate(id, req.body, { new: true }) //返回的更改之前的数据,第三个参数表示返回新的
-    res.status(202).json({ status: 202, data: updateData })
+    res.status(202).json({ status: 202, data: updateData, message: '修改成功' })
   }
 
   /**
@@ -91,21 +99,44 @@ class UserInstance {
     console.log('req', req.file, req.user._id);
     // let fileFormat = req.file.originalname.lastIndexOf('.')
     // let format = req.file.originalname.slice(fileFormat)
-    // try {
-    //   rename(`./public/${req.url}` + req.file.filename, `./public/${req.url}` + req.file.filename + format) //修改文件名
-    //   res.status(201).json({ filepath: req.file.filename + format })
-    // } catch (err) {
-    //   res.status(500).json({ error: err })
-    // }
+    try {
+      // rename(`./public/${req.url}` + req.file.filename, `./public/${req.url}` + req.file.filename + format) //修改文件名
+      res.status(200).json({ destination: req.file.destination, filepath: req.file.filename, message: '上传成功' })
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
   }
 
   /**
    * 删除
    */
-  deleteUser (req, res) {
-
+  async deleteUser (req, res) {
+    let { id } = req.body
+    try {
+      await User.findByIdAndDelete(id)
+      res.status(201).json({ message: '删除成功' })
+    } catch (err) {
+      res.status(500).json({ error: err })
+    }
   }
 
-
+  /**
+   * 根据指定获取用户
+   */
+  async getuser (req, res) {
+    const { username } = req.body
+    const orCondition = { $or: [{ phone: username }, { username: username }, { _id: username }] }
+    try {
+      const result = await User.findOne(orCondition)
+      if (result) {
+        res.status(201).json({ message: '查询成功', data: result })
+      } else {
+        res.status(201).json({ message: '用户不存在' })
+      }
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ message: '服务器内部错误' })
+    }
+  }
 }
 module.exports = UserInstance.userController

@@ -29,5 +29,6 @@ router
   .get('/lists', jwt, userController.getlList)
   .put('/', jwt, validator.update, userController.updatedUser)
   .post('/headimg', jwt, upload.single('headimg'), userController.headimg)
-  .delete('/', jwt, userController.deleteUser)
+  .post('/deleteUser', jwt, validator.deleteUser, userController.deleteUser)
+  .get('/getuser', jwt, userController.getuser)
 module.exports = router 
