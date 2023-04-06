@@ -14,15 +14,92 @@ const userSchema = new Schema({
   explain: { type: String }, //介绍
   profile: { type: String, default: "user.png" },//头像
   code: { type: String, default: '' },
-  cover: {
-    type: String,
-    default: null
-  }, //频道封面
-  channeldes: {
-    type: String,
-    default: null
-  },//频道描述
+  label: {
+    type: Array,
+    default: ['帅气', '腹黑']
+  },
+  roleIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role'
+  }],
   ...baseModel
+});
+
+// 角色表（role）
+const roles = new mongoose.Schema({
+  name: {
+    type: String,
+    default: '管理员'
+  },
+  permIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Permission'
+  }], //存储权限表id
+  description: { type: String }, // 角色描述
+  ...baseModel
+})
+
+
+// 权限表（permission）
+const permissions = new mongoose.Schema({
+  name: {
+    type: String,
+    default: "read_article"
+  },
+  resource: { type: String, default: "article" },
+  action: { type: String, default: "create" },
+  description: { type: String } // 权限描述
+}) //resource 表示资源的名称，action 表示权限控制的行为
+
+const rolePermissionSchema = new mongoose.Schema({
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    required: true
+  },
+  permission: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Permission',
+    required: true
+  }
+});
+
+const userRoleSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    required: true
+  }
+});
+
+// 文章
+const articleSchema = new mongoose.Schema({
+  title: { type: String, required: true }, //文章标题
+  author: { type: String, required: true }, //作者名字或 ID
+  content: {
+    markdown: { type: String, required: true },
+    html: { type: String, required: true }
+  },//文章内容，可以使用一个子文档来存储，包含 Markdown 和 HTML 格式的内容
+  tags: [{ type: String }], //文章标签，可以使用数组来存储。
+  userID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  created_at: { type: Date, default: Date.now() }, //文章创建时间
+  updated_at: { type: Date, default: Date.now() },  //文章更新时间
+  voteCount: {
+    type: Number,
+    default: 0,
+    require: true
+  }, //赞
+  trampleCount: {
+    type: Number,
+    default: 0,
+    require: true
+  },//踩
+
 });
 
 // 好友表
@@ -88,5 +165,9 @@ module.exports = {
   Message: db.model("Message", MessageSchema),
   Group: db.model("Group", GroupSchema),
   GroupUser: db.model("GroupUser", GroupUserSchema),
-  GroupMsg: db.model("GroupMsg", GroupMsgSchema)
+  GroupMsg: db.model("GroupMsg", GroupMsgSchema),
+  Permission: db.model('Permission', permissions),
+  Role: db.model('Roles', roles),
+  RolePermission: db.model('RolePermission', rolePermissionSchema),
+  UserRoleSchema: db.model('UserRoleSchema', userRoleSchema),
 }

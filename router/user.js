@@ -31,4 +31,5 @@ router
   .post('/headimg', jwt, upload.single('headimg'), userController.headimg)
   .post('/deleteUser', jwt, validator.deleteUser, userController.deleteUser)
   .get('/getuser', jwt, userController.getuser)
+  .put("/assignRoles", jwt, userController.assignRoles)
 module.exports = router 

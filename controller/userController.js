@@ -1,11 +1,11 @@
 // const { promisify } = require('util')
 // const fs = require('fs')
+// const rename = promisify(fs.rename) //修改文件名
 const { User } = require('../model/MongoTable')
 // const Joi = require('joi'); //可以进行验证
 const Bcrypt = require('../utils/md5') //加密解密
 const jwt = require('../utils/jwt') //token
-// const rename = promisify(fs.rename) //修改文件名
-
+const Message = require('../middleware/Message')
 class UserInstance {
   static userController = new UserInstance()
   /**
@@ -103,7 +103,7 @@ class UserInstance {
       // rename(`./public/${req.url}` + req.file.filename, `./public/${req.url}` + req.file.filename + format) //修改文件名
       res.status(200).json({ destination: req.file.destination, filepath: req.file.filename, message: '上传成功' })
     } catch (err) {
-      res.status(500).json({ error: err })
+      res.status(500).json({ error: err, message: Message.SERVER_ERROR })
     }
   }
 
@@ -114,9 +114,9 @@ class UserInstance {
     let { id } = req.body
     try {
       await User.findByIdAndDelete(id)
-      res.status(201).json({ message: '删除成功' })
+      res.status(201).json({ message: Message.DELETE_SUCCESS })
     } catch (err) {
-      res.status(500).json({ error: err })
+      res.status(500).json({ error: err, message: Message.SERVER_ERROR })
     }
   }
 
@@ -124,19 +124,37 @@ class UserInstance {
    * 根据指定获取用户
    */
   async getuser (req, res) {
-    const { username } = req.body
-    const orCondition = { $or: [{ phone: username }, { username: username }, { _id: username }] }
+    const { username } = req.query
     try {
-      const result = await User.findOne(orCondition)
+      const orCondition = { $or: [{ _id: username }, { phone: username }, { username: username }] }
+      const result = await User.find(orCondition)
       if (result) {
-        res.status(201).json({ message: '查询成功', data: result })
+        res.status(201).json({ message: Message.USER_SELECT_SUCCESS, data: result })
       } else {
-        res.status(201).json({ message: '用户不存在' })
+        res.status(201).json({ message: Message.USER_NOT_FOUND })
       }
     } catch (err) {
-      console.error(err)
-      res.status(500).json({ message: '服务器内部错误' })
+      res.status(500).json({ message: Message.SERVER_ERROR })
     }
   }
+
+  /** 
+   * 给用户分配角色
+   */
+  async assignRoles (req, res) {
+    const { id, roleIds } = req.body
+    try {
+      const user = await User.findById(id)
+      if (user) {
+        await User.findByIdAndUpdate(id, { roleIds }, { new: true })
+        res.status(200).json({ status: 200, message: '给用户分配角色成功' })
+      } else {
+        res.status(201).json({ status: 201, message: '当前用户不存在' })
+      }
+    } catch (err) {
+      res.status(500).json({ status: 500, error: err })
+    }
+  }
+
 }
 module.exports = UserInstance.userController
