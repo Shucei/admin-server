@@ -26,32 +26,45 @@ const userSchema = new Schema({
 });
 
 // 角色表（role）
-const roles = new mongoose.Schema({
+const roles = new Schema({
   name: {
     type: String,
-    default: '管理员'
+    default: '',
+    required: true
   },
   permIds: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Permission'
   }], //存储权限表id
-  description: { type: String }, // 角色描述
+  description: { type: String, required: true }, // 角色描述
   ...baseModel
 })
 
 
 // 权限表（permission）
-const permissions = new mongoose.Schema({
+const permissionsSchema = new mongoose.Schema({
   name: {
     type: String,
-    default: "read_article"
+    default: '',
+    required: true
   },
-  resource: { type: String, default: "article" },
-  action: { type: String, default: "create" },
-  description: { type: String } // 权限描述
-}) //resource 表示资源的名称，action 表示权限控制的行为
+  code: {
+    type: String,
+    default: '',
+    unique: true,
+    index: true
+  },
+  pid: {
+    type: String,
+    default: '0' //二级权限的pid为父权限的id
+  },
+  description: {
+    type: String,
+    default: '' // 权限描述
+  }
+});
 
-const rolePermissionSchema = new mongoose.Schema({
+const rolePermissionSchema = new Schema({
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
@@ -78,7 +91,7 @@ const userRoleSchema = new mongoose.Schema({
 });
 
 // 文章
-const articleSchema = new mongoose.Schema({
+const articleSchema = new Schema({
   title: { type: String, required: true }, //文章标题
   author: { type: String, required: true }, //作者名字或 ID
   content: {
@@ -166,7 +179,7 @@ module.exports = {
   Group: db.model("Group", GroupSchema),
   GroupUser: db.model("GroupUser", GroupUserSchema),
   GroupMsg: db.model("GroupMsg", GroupMsgSchema),
-  Permission: db.model('Permission', permissions),
+  Permission: db.model('Permission', permissionsSchema),
   Role: db.model('Roles', roles),
   RolePermission: db.model('RolePermission', rolePermissionSchema),
   UserRoleSchema: db.model('UserRoleSchema', userRoleSchema),
