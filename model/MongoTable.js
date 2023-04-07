@@ -17,11 +17,11 @@ const userSchema = new Schema({
   label: {
     type: Array,
     default: ['帅气', '腹黑']
-  },
+  }, // 标签
   roleIds: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role'
-  }],
+  }], // 角色表
   ...baseModel
 });
 
@@ -64,56 +64,66 @@ const permissionsSchema = new mongoose.Schema({
   }
 });
 
-const rolePermissionSchema = new Schema({
-  role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role',
-    required: true
-  },
-  permission: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Permission',
-    required: true
-  }
-});
+// const rolePermissionSchema = new Schema({
+//   role: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Role',
+//     required: true
+//   },
+//   permission: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Permission',
+//     required: true
+//   }
+// });
 
-const userRoleSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role',
-    required: true
-  }
-});
+// const userRoleSchema = new mongoose.Schema({
+//   user: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'User',
+//     required: true
+//   },
+//   role: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Role',
+//     required: true
+//   }
+// });
 
 // 文章
 const articleSchema = new Schema({
   title: { type: String, required: true }, //文章标题
-  author: { type: String, required: true }, //作者名字或 ID
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 作者名字或 ID
   content: {
     markdown: { type: String, required: true },
     html: { type: String, required: true }
   },//文章内容，可以使用一个子文档来存储，包含 Markdown 和 HTML 格式的内容
   tags: [{ type: String }], //文章标签，可以使用数组来存储。
-  userID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  created_at: { type: Date, default: Date.now() }, //文章创建时间
-  updated_at: { type: Date, default: Date.now() },  //文章更新时间
+  ...baseModel,
   voteCount: {
     type: Number,
     default: 0,
     require: true
   }, //赞
-  trampleCount: {
-    type: Number,
-    default: 0,
-    require: true
-  },//踩
-
+  views: { type: Number }, //浏览次数
+  status: { type: Number, default: 0 }, // 0-草稿，1-发布
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comments' }]
 });
+
+const comments = new Schema({
+  content: { type: String, required: true },// 评论内容
+  article: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Article',
+    required: true
+  }, //评论所属文章的 ID，关联 articles 表
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },//评论者ID
+  parent_comment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment'
+  }, // 回复的父级评论，如果是对文章的评论则为 null
+  ...baseModel
+})
 
 // 好友表
 const FriendSchema = new Schema({
@@ -181,6 +191,8 @@ module.exports = {
   GroupMsg: db.model("GroupMsg", GroupMsgSchema),
   Permission: db.model('Permission', permissionsSchema),
   Role: db.model('Roles', roles),
-  RolePermission: db.model('RolePermission', rolePermissionSchema),
-  UserRoleSchema: db.model('UserRoleSchema', userRoleSchema),
+  Article: db.model('Article', articleSchema),
+  Comments: db.model('Comments', comments)
+  // RolePermission: db.model('RolePermission', rolePermissionSchema),
+  // UserRoleSchema: db.model('UserRoleSchema', userRoleSchema),
 }
