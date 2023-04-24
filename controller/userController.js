@@ -1,7 +1,7 @@
 // const { promisify } = require('util')
 // const fs = require('fs')
 // const rename = promisify(fs.rename) //修改文件名
-const { User } = require('../model/MongoTable')
+const { User, Role } = require('../model/MongoTable')
 // const Joi = require('joi'); //可以进行验证
 const Bcrypt = require('../utils/md5') //加密解密
 const jwt = require('../utils/jwt') //token
@@ -34,6 +34,7 @@ class UserInstance {
       email,
       password,
     };
+
     let userModel = new User(data);
     const dbUser = await userModel.save();
     let user = dbUser.toJSON()
@@ -61,7 +62,7 @@ class UserInstance {
       }
       user["password"] = undefined
       const token = jwt.generateToken(user) //存储token
-      return res.status(200).json({ data: user, token, status: 200, message: '登录成功' });
+      return res.status(200).json({ data: { token, id: user._id }, status: 200, message: '登录成功' });
     } catch (error) {
       return res.status(500).json({ error, status: 500, message: '出现了一些问题，请稍后再试' });
     }
@@ -72,13 +73,17 @@ class UserInstance {
    * 获取用户列表
    */
   async getlList (req, res) {
+    // 进行分页处理
+    const { page = 1, pageSize = 10 } = req.query
+    const limit = Number(pageSize)
+    const skip = (page - 1) * pageSize
     try {
-      const data = await User.find({})
-      res.status(200).json({ data: data })
-    } catch (err) {
-      res.status(200).json({ error: err })
+      let data = await User.find({}, { _id: 1, username: 1, profile: 1, mobile: 1, headimg: 1, role: 1, createTime: 1, roleIds: 1 }).skip(skip).limit(limit)
+      const total = await User.countDocuments()
+      res.status(200).json({ data: data, total, status: 200, message: '获取成功' })
+    } catch (error) {
+      res.status(500).json({ error, status: 500, message: '出现了一些问题，请稍后再试' });
     }
-
   }
 
 
@@ -114,9 +119,10 @@ class UserInstance {
     let { id } = req.body
     try {
       await User.findByIdAndDelete(id)
-      res.status(201).json({ message: Message.DELETE_SUCCESS })
+
+      res.status(201).json({ status: 200, message: Message.DELETE_SUCCESS })
     } catch (err) {
-      res.status(500).json({ error: err, message: Message.SERVER_ERROR })
+      res.status(500).json({ status: 500, error: err, message: Message.SERVER_ERROR })
     }
   }
 
@@ -124,17 +130,17 @@ class UserInstance {
    * 根据指定获取用户
    */
   async getuser (req, res) {
-    const { username } = req.query
+    const id = req.query.id || req.user._id
     try {
-      const orCondition = { $or: [{ _id: username }, { phone: username }, { username: username }] }
-      const result = await User.find(orCondition)
+      const orCondition = { $or: [{ _id: id }, { phone: id }, { username: id }] }
+      const result = await User.findOne(orCondition)
       if (result) {
-        res.status(201).json({ message: Message.USER_SELECT_SUCCESS, data: result })
+        res.status(200).json({ status: 200, message: Message.USER_SELECT_SUCCESS, data: result })
       } else {
-        res.status(201).json({ message: Message.USER_NOT_FOUND })
+        res.status(201).json({ status: 201, message: Message.USER_NOT_FOUND, data: result })
       }
     } catch (err) {
-      res.status(500).json({ message: Message.SERVER_ERROR })
+      res.status(500).json({ status: 500, message: Message.SERVER_ERROR })
     }
   }
 
@@ -142,14 +148,14 @@ class UserInstance {
    * 给用户分配角色
    */
   async assignRoles (req, res) {
-    const { id, roleIds } = req.body
+    const { userId: id, roleIds } = req.body
     try {
       const user = await User.findById(id)
       if (user) {
         await User.findByIdAndUpdate(id, { roleIds }, { new: true })
-        res.status(200).json({ status: 200, message: '给用户分配角色成功' })
+        res.status(200).json({ status: 200, message: '分配角色成功' })
       } else {
-        res.status(201).json({ status: 201, message: '当前用户不存在' })
+        res.status(401).json({ status: 401, message: '当前用户不存在' })
       }
     } catch (err) {
       res.status(500).json({ status: 500, error: err })

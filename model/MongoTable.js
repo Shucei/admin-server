@@ -10,18 +10,19 @@ const userSchema = new Schema({
   email: { type: String, require: true },//邮箱
   sex: { type: String, default: "1" },//性别
   birth: { type: Date }, //生日
-  phone: { type: String, default: '1300000001' },//手机
+  mobile: { type: String, default: '1300000001' },//手机
   explain: { type: String }, //介绍
-  profile: { type: String, default: "user.png" },//头像
+  profile: { type: String, default: "https://i.gtimg.cn/club/item/face/img/2/16022_100.gif" },//头像
   code: { type: String, default: '' },
   label: {
     type: Array,
     default: ['帅气', '腹黑']
   }, // 标签
-  roleIds: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role'
-  }], // 角色表
+  role: {
+    type: String,
+    default: '超级管理员'
+  },
+  roleIds: { type: Array, default: [] }, // 角色表
   ...baseModel
 });
 
@@ -29,17 +30,39 @@ const userSchema = new Schema({
 const roles = new Schema({
   name: {
     type: String,
-    default: '',
+    default: '普通用户',
     required: true
   },
-  permIds: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Permission'
-  }], //存储权限表id
+  permIds: { type: Array, default: [] }, // 存储权限表id
   description: { type: String, required: true }, // 角色描述
   ...baseModel
 })
 
+//权限表需要存储的数据
+// name: '用户管理',
+// code: 'user',
+// pid: '0',
+// description: '用户管理',
+// children: [
+//   {
+//     name: '用户列表',
+//     code: 'user_list',
+//     pid: 'user',
+//     description: '用户列表'
+//   },
+//   {
+//     name: '用户添加',
+//     code: 'user_add',
+//     pid: 'user',
+//     description: '用户添加'
+//   },
+//   { 
+//     name: '用户删除',
+//     code: 'user_delete',
+//     pid: 'user',
+//     description: '用户删除'
+//   }
+// ]
 
 // 权限表（permission）
 const permissionsSchema = new mongoose.Schema({
@@ -47,21 +70,43 @@ const permissionsSchema = new mongoose.Schema({
     type: String,
     default: '',
     required: true
-  },
+  },// 权限名称
   code: {
     type: String,
     default: '',
     unique: true,
     index: true
-  },
+  },// 权限码
   pid: {
     type: String,
-    default: '0' //二级权限的pid为父权限的id
+    default: '0' // 二级权限的pid为父权限的id
   },
   description: {
     type: String,
     default: '' // 权限描述
-  }
+  },
+  children: [{
+    name: {
+      type: String,
+      default: '',
+      required: true
+    },// 权限名称
+    code: {
+      type: String,
+      default: '',
+      unique: true,
+      index: true
+    },// 权限码
+    pid: {
+      type: String,
+      default: '' // 二级权限的pid为父权限的code
+    },
+    description: {
+      type: String,
+      default: '' // 权限描述
+    },
+  }],
+  ...baseModel
 });
 
 // const rolePermissionSchema = new Schema({

@@ -10,14 +10,16 @@ class RolesInstance {
     const pageSize = parseInt(req.query.pageSize) || 10;
     const skip = (page - 1) * pageSize;
     const limit = pageSize;
-    console.log(skip, limit);
     try {
-      const roles = await Role.find()
+      const roles = await Role.find({}, { _id: 1, name: 1, permIds: 1, description: 1, })
         .skip(skip)
         .limit(limit)
         .exec();
+      const total = await Role.countDocuments()
       res.json({
+        status: 200,
         success: true,
+        total,
         data: roles,
         message: '获取角色列表成功'
       });
@@ -26,6 +28,7 @@ class RolesInstance {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
+
 
   /**
    * 添加角色
@@ -69,7 +72,6 @@ class RolesInstance {
     } catch (error) {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
-
   }
 
   /**
@@ -106,7 +108,6 @@ class RolesInstance {
    * 获取权限点
    */
   async getPermission (req, res) {
-    console.log(33663);
     try {
       let rows = await Permission.find()
       res.status(200).json({ status: 200, message: '获取权限点成功', data: rows })

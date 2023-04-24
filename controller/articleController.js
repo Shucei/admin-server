@@ -63,6 +63,7 @@ class ArticleInstance {
    * @param {*} req 
    * @param {*} res 
    */
+
   async getArticleDetail (req, res) {
     const { id } = req.params
     try {

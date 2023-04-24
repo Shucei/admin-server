@@ -48,7 +48,6 @@ module.exports.login = validate(
 module.exports.update = validate(
   [
     body('email')
-      .isEmail().withMessage('邮箱格式错误').bail()
       .custom(async val => {
         // 自定义校验规则，进行用户邮箱查重
         const result = await User.countDocuments({ email: val })

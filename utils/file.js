@@ -17,7 +17,6 @@ exports.storage = multer.diskStorage({
   //保存在 destination 中的文件名
   filename: function (req, file, cb) {
     // 如果上传的是头像，就覆盖原来的，就不能使用时间戳
-
     let type = file.originalname.replace(/.+\./, ".");
     if (req.url === "/headimg") {
       cb(null, req.user._id + type);
