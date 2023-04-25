@@ -1,4 +1,5 @@
-const { Role, Permission } = require('../model/MongoTable')
+const { Role, Permission, User } = require('../model/MongoTable')
+const { assignRoles } = require('./userController')
 const Message = require('../middleware/Message')
 class RolesInstance {
   static rolesController = new RolesInstance()
@@ -50,6 +51,14 @@ class RolesInstance {
     const id = req.params.id
     try {
       await Role.findByIdAndDelete(id)
+      // 删除角色的同时，删除用户中的角色
+      // $pull 删除数组中的指定元素,第一个参数是要删除的数组，第二个参数是要删除的元素
+      // updateMany 更新多个文档,第一个参数是查询条件，第二个参数是更新的内容,第三个参数是回调函数
+      // 1.先查找用户中的角色，然后删除角色中的id
+      // 2.然后更新用户中的角色
+      // $elemMatch的作用是匹配数组中的元素，然后返回整个文档
+      // $pull的作用是删除数组中的指定元素
+      await User.updateMany({ roleIds: { $elemMatch: { _id: id } } }, { $pull: { roleIds: { _id: id } } })
       res.status(200).json({ status: 200, message: '删除角色成功' })
     } catch (error) {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
