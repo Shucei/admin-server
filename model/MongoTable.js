@@ -22,7 +22,9 @@ const userSchema = new Schema({
     type: String,
     default: '超级管理员'
   },
-  roleIds: { type: Array, default: [] }, // 角色表
+  roleIds: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Role' }
+  ], // 角色表
   ...baseModel
 });
 
@@ -33,7 +35,10 @@ const roles = new Schema({
     default: '普通用户',
     required: true
   },
-  permIds: { type: Array, default: [] }, // 存储权限表id
+  permIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Permission'
+  }], // 存储权限表id
   description: { type: String, required: true }, // 角色描述
   ...baseModel
 })
@@ -79,33 +84,14 @@ const permissionsSchema = new mongoose.Schema({
   },// 权限码
   pid: {
     type: String,
-    default: '0' // 二级权限的pid为父权限的id
+    default: '0', // 二级权限的pid为父权限的code
+    required: true
   },
   description: {
     type: String,
-    default: '' // 权限描述
+    default: '', // 权限描述
+    required: true
   },
-  children: [{
-    name: {
-      type: String,
-      default: '',
-      required: true
-    },// 权限名称
-    code: {
-      type: String,
-      default: '',
-      unique: true,
-      index: true
-    },// 权限码
-    pid: {
-      type: String,
-      default: '' // 二级权限的pid为父权限的code
-    },
-    description: {
-      type: String,
-      default: '' // 权限描述
-    },
-  }],
   ...baseModel
 });
 

@@ -39,7 +39,7 @@ module.exports.addPermissions = validate(
         if (result) {
           return Promise.reject('权限名已存在')
         }
-      }).bail(), ,
+      }).bail(),
     body('code')
       .notEmpty().withMessage('标识不能为空').bail(),
     body('description')

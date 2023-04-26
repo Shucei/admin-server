@@ -50,15 +50,16 @@ class RolesInstance {
   async deleteRole (req, res) {
     const id = req.params.id
     try {
+      await User.updateMany({ roleIds: id }, { $pull: { roleIds: id } })
       await Role.findByIdAndDelete(id)
-      // 删除角色的同时，删除用户中的角色
+      // 删除角色的同时，删除用户中存在该角色的用户，此时roleIds中存的是角色对象
       // $pull 删除数组中的指定元素,第一个参数是要删除的数组，第二个参数是要删除的元素
       // updateMany 更新多个文档,第一个参数是查询条件，第二个参数是更新的内容,第三个参数是回调函数
       // 1.先查找用户中的角色，然后删除角色中的id
       // 2.然后更新用户中的角色
       // $elemMatch的作用是匹配数组中的元素，然后返回整个文档
       // $pull的作用是删除数组中的指定元素
-      await User.updateMany({ roleIds: { $elemMatch: { _id: id } } }, { $pull: { roleIds: { _id: id } } })
+      // await User.updateMany({ roleIds: { $elemMatch: { _id: id } } }, { $pull: { roleIds: { _id: id } } })
       res.status(200).json({ status: 200, message: '删除角色成功' })
     } catch (error) {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
@@ -114,7 +115,7 @@ class RolesInstance {
   }
 
   /**
-   * 获取权限点
+   * 获取权限列表
    */
   async getPermission (req, res) {
     try {
@@ -124,6 +125,7 @@ class RolesInstance {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
+
 
   /**
    * 添加权限点

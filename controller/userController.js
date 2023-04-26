@@ -79,6 +79,24 @@ class UserInstance {
     const skip = (page - 1) * pageSize
     try {
       let data = await User.find({}, { _id: 1, username: 1, profile: 1, mobile: 1, headimg: 1, role: 1, createTime: 1, roleIds: 1 }).skip(skip).limit(limit)
+      const roleName = []
+      // data是一个mongoose对象，所以要转换成json对象，才能改变
+      // 通过roleid将role表中的name取出来，然后添加到data中，返回给前端
+      // 帮我改变data的值，在返回给前端
+      data = data.map(item => item.toJSON())
+      for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].roleIds.length; j++) {
+          console.log(data[i].roleIds[j]);
+          if (data[i].roleIds[j]) {
+            const role = await Role.findById(data[i].roleIds[j], { name: 1 })
+            if (role) {
+              roleName.push(role.name)
+
+            }
+          }
+        }
+        data[i].roleName = roleName
+      }
       const total = await User.countDocuments()
       res.status(200).json({ data: data, total, status: 200, message: '获取成功' })
     } catch (error) {
