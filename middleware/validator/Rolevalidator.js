@@ -24,8 +24,8 @@ module.exports.AssignRole = validate(
   [
     body('id')
       .notEmpty().withMessage('Id不能为空').bail(),
-    body('permIds')
-      .notEmpty().withMessage('更新permIds不能为空').bail()
+    // body('permIds')
+    //   .notEmpty().withMessage('更新permIds不能为空').bail()
   ]
 )
 

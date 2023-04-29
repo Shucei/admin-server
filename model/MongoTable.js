@@ -22,9 +22,11 @@ const userSchema = new Schema({
     type: String,
     default: '超级管理员'
   },
-  roleIds: [
-    { type: mongoose.Schema.Types.ObjectId, ref: 'Role' }
-  ], // 角色表
+  // roleIds: { type: Array, default: [] }, // 角色表
+  roleIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role'
+  }], // 角色表
   ...baseModel
 });
 

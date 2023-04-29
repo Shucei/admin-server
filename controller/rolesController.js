@@ -1,5 +1,4 @@
 const { Role, Permission, User } = require('../model/MongoTable')
-const { assignRoles } = require('./userController')
 const Message = require('../middleware/Message')
 class RolesInstance {
   static rolesController = new RolesInstance()
@@ -50,6 +49,7 @@ class RolesInstance {
   async deleteRole (req, res) {
     const id = req.params.id
     try {
+      // 删除角色的同时，删除用户中存在该角色的用户，此时roleIds中存的是角色id
       await User.updateMany({ roleIds: id }, { $pull: { roleIds: id } })
       await Role.findByIdAndDelete(id)
       // 删除角色的同时，删除用户中存在该角色的用户，此时roleIds中存的是角色对象

@@ -1,7 +1,7 @@
 // const { promisify } = require('util')
 // const fs = require('fs')
 // const rename = promisify(fs.rename) //修改文件名
-const { User, Role } = require('../model/MongoTable')
+const { User, Role, Permission } = require('../model/MongoTable')
 // const Joi = require('joi'); //可以进行验证
 const Bcrypt = require('../utils/md5') //加密解密
 const jwt = require('../utils/jwt') //token
@@ -79,23 +79,21 @@ class UserInstance {
     const skip = (page - 1) * pageSize
     try {
       let data = await User.find({}, { _id: 1, username: 1, profile: 1, mobile: 1, headimg: 1, role: 1, createTime: 1, roleIds: 1 }).skip(skip).limit(limit)
-      const roleName = []
+      let roleName = []
       // data是一个mongoose对象，所以要转换成json对象，才能改变
-      // 通过roleid将role表中的name取出来，然后添加到data中，返回给前端
-      // 帮我改变data的值，在返回给前端
+      // 通过roleid将role表中的name取出来，然后添加到data中，返回给前端,用于显示角色名称，当roleIds中存储的是id时可以这样获取name
       data = data.map(item => item.toJSON())
       for (let i = 0; i < data.length; i++) {
         for (let j = 0; j < data[i].roleIds.length; j++) {
-          console.log(data[i].roleIds[j]);
           if (data[i].roleIds[j]) {
             const role = await Role.findById(data[i].roleIds[j], { name: 1 })
             if (role) {
               roleName.push(role.name)
-
             }
           }
         }
         data[i].roleName = roleName
+        roleName = []
       }
       const total = await User.countDocuments()
       res.status(200).json({ data: data, total, status: 200, message: '获取成功' })
@@ -137,7 +135,6 @@ class UserInstance {
     let { id } = req.body
     try {
       await User.findByIdAndDelete(id)
-
       res.status(201).json({ status: 200, message: Message.DELETE_SUCCESS })
     } catch (err) {
       res.status(500).json({ status: 500, error: err, message: Message.SERVER_ERROR })
@@ -151,7 +148,10 @@ class UserInstance {
     const id = req.query.id || req.user._id
     try {
       const orCondition = { $or: [{ _id: id }, { phone: id }, { username: id }] }
-      const result = await User.findOne(orCondition)
+      let result = await User.findOne(orCondition)
+      const role = await getPermissionPoints(result)
+      result = result.toJSON()
+      result.role = role
       if (result) {
         res.status(200).json({ status: 200, message: Message.USER_SELECT_SUCCESS, data: result })
       } else {
@@ -180,5 +180,46 @@ class UserInstance {
     }
   }
 
+}
+
+// 获取权限点数据
+const getPermissionPoints = async (ctx) => {
+  let menus = [], points = []
+  const permission = await Permission.find()
+  if (ctx.mobile === '13800000000' || ctx.email === '1003823477@qq.com') {
+    // 如果是管理员 则拥有所有的权限
+    menus = permission.filter(item => item.pid === '0').map(item => item.code) // 所有的菜单的权限点
+    points = permission.filter(item => item.pid !== '0').map(item => item.code) // 所有按钮的权限点
+  } else {
+    const roles = await Role.find()
+    let pList = new Set() // 当前所有的权限点
+    ctx.roleIds.forEach(roleId => {
+      // 这里始终找不到，因为roleId是字符串，而_id是数字,所以要转化一下
+      const currentRole = roles.find(item => item._id.toString() === roleId.toString())
+      console.log('currentRole', currentRole);
+      if (currentRole) {
+        currentRole.permIds.forEach(id => {
+          pList.add(id)
+        })
+      }
+    })
+    pList = [...pList] // 转化成数组
+    pList.forEach(id => {
+      const pObj = permission.find(p => p._id.toString() == id)
+      if (pObj) {
+        if (pObj.pid === '0') {
+          menus.push(pObj.code)
+        }
+        if (pObj.pid !== '0') {
+          points.push(pObj.code)
+        }
+      }
+    })
+  }
+  return {
+    menus,
+    points,
+    apis: []
+  }
 }
 module.exports = UserInstance.userController
