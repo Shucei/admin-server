@@ -27,6 +27,10 @@ const userSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role'
   }], // 角色表
+  friendsID: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }], // 好友表
   ...baseModel
 });
 
@@ -44,32 +48,6 @@ const roles = new Schema({
   description: { type: String, required: true }, // 角色描述
   ...baseModel
 })
-
-//权限表需要存储的数据
-// name: '用户管理',
-// code: 'user',
-// pid: '0',
-// description: '用户管理',
-// children: [
-//   {
-//     name: '用户列表',
-//     code: 'user_list',
-//     pid: 'user',
-//     description: '用户列表'
-//   },
-//   {
-//     name: '用户添加',
-//     code: 'user_add',
-//     pid: 'user',
-//     description: '用户添加'
-//   },
-//   { 
-//     name: '用户删除',
-//     code: 'user_delete',
-//     pid: 'user',
-//     description: '用户删除'
-//   }
-// ]
 
 // 权限表（permission）
 const permissionsSchema = new mongoose.Schema({
@@ -96,32 +74,6 @@ const permissionsSchema = new mongoose.Schema({
   },
   ...baseModel
 });
-
-// const rolePermissionSchema = new Schema({
-//   role: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'Role',
-//     required: true
-//   },
-//   permission: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'Permission',
-//     required: true
-//   }
-// });
-
-// const userRoleSchema = new mongoose.Schema({
-//   user: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'User',
-//     required: true
-//   },
-//   role: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: 'Role',
-//     required: true
-//   }
-// });
 
 // 文章
 const articleSchema = new Schema({
@@ -162,22 +114,10 @@ const comments = new Schema({
 const FriendSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   friendID: { type: Schema.Types.ObjectId, ref: "User" }, //好友id
-  state: { type: String }, //好友状态(0已是好友，1有申请(待同意)，2表示申请方，对方还未同意)
+  status: { type: String }, //好友状态(0-待确认，1-已确认)
   markname: { type: String }, //备注
-  time: {
-    type: Date,
-  }, //生成时间
-  lastTime: { type: Date }, //最后通讯时间
-});
 
-// 一对一消息表
-const MessageSchema = new Schema({
-  userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
-  friendID: { type: Schema.Types.ObjectId, ref: "User" }, //好友id
-  message: { type: String }, //内容
-  types: { type: String }, //内容类型(0文字，1图片链接，2音频链接)
-  time: { type: Date }, //发送时间
-  state: { type: Number }, //消息状态(0已读，1未读)
+  ...baseModel,//最后通讯时间
 });
 
 // 群表
@@ -187,29 +127,33 @@ const GroupSchema = new Schema({
   imgurl: { type: String, default: "group.png" }, //群头像
   time: { type: Date }, //创建时间
   notice: { type: String }, //公告
+  userList: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'GroupUser'
+  }], //群成员列表
 });
 
-//群成员表
+// 群成员表
 const GroupUserSchema = new Schema({
   GroupID: { type: Schema.Types.ObjectId, ref: "Group" }, //群id
   userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
   name: { type: String }, //群内名称
   tip: { type: Number, default: 0 }, //未读消息数，0已读读，1未读
-  time: { type: Date }, //加入时间
-  lastTime: { type: Date }, //最后通讯时间
   shield: { type: String }, //是否屏蔽群消息(0不屏蔽，1屏蔽)
   state: { type: String }, //添加状态(0已经加入群聊，1有申请(待同意)，2表示申请方，对方还未同意)
-  userList: { type: Object },
+  role: { type: String }, //角色(0普通成员，1管理员，2群主)
+  ...baseModel, // 加入时间，最后通讯时间
 });
 
-//群消息表
-const GroupMsgSchema = new Schema({
-  GroupID: { type: Schema.Types.ObjectId, ref: "Group" }, //群id
-  userID: { type: Schema.Types.ObjectId, ref: "User" }, //用户id
-  message: { type: String }, //内容
+//消息表
+const MsgSchema = new Schema({
+  sender_id: { type: Schema.Types.ObjectId, ref: "User" }, //发送者id
+  receiver_id: { type: Schema.Types.ObjectId, ref: "User" }, //接收者id
+  group_id: { type: Schema.Types.ObjectId, ref: "Group" }, //群id(如果是群消息)
+  content: { type: String }, //内容
   types: { type: String }, //内容类型(0文字，1图片链接，2音频链接)
-  time: { type: Date }, //发送时间
-  tip: { type: Number, default: 0 }, //未读消息数，0已读读，1未读
+  time: { type: Date, default: Date.now() }, //发送时间
+  tip: { type: Number, default: 0 }, //未读消息数，0未读，1已读
 });
 
 
@@ -218,10 +162,9 @@ const GroupMsgSchema = new Schema({
 module.exports = {
   User: db.model("User", userSchema),
   Friend: db.model("Friend", FriendSchema),
-  Message: db.model("Message", MessageSchema),
   Group: db.model("Group", GroupSchema),
   GroupUser: db.model("GroupUser", GroupUserSchema),
-  GroupMsg: db.model("GroupMsg", GroupMsgSchema),
+  MsgSchema: db.model("GroupMsg", MsgSchema),
   Permission: db.model('Permission', permissionsSchema),
   Role: db.model('Roles', roles),
   Article: db.model('Article', articleSchema),

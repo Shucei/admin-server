@@ -14,7 +14,7 @@ class ArticleInstance {
       const newArticle = await Article.create(req.body)
       res.status(200).json({ status: 200, message: '创建文章成功', data: newArticle })
     } catch (error) {
-      res.status(500).json({ status: 500, error, message: '服务器内部错误' })
+      res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
 
@@ -36,7 +36,7 @@ class ArticleInstance {
       }, { new: true })
       res.status(200).json({ status: 200, message: '更新文章成功', data: article })
     } catch (error) {
-      res.status(500).json({ status: 500, error, message: '服务器内部错误' })
+      res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
 
@@ -54,7 +54,7 @@ class ArticleInstance {
       const total = await Article.countDocuments()
       res.status(200).json({ status: 200, message: '查询文章列表成功', data: { articles, total } })
     } catch (error) {
-      res.status(500).json({ status: 500, error, message: '服务器内部错误' })
+      res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
 
@@ -70,7 +70,7 @@ class ArticleInstance {
       const article = await Article.findById(id)
       res.status(200).json({ status: 200, message: '查询文章详情成功', data: article })
     } catch (error) {
-      res.status(500).json({ status: 500, error, message: '服务器内部错误' })
+      res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
     }
   }
 }

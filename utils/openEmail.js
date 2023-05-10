@@ -25,7 +25,7 @@ exports.emailSignUp = function (email, res) {
   };
 
   //   发送邮件
-  transporter.sendMail(options, function (err, msg) {
+  transporter.sendMail(options, function (err) {
     if (err) {
       res.send("邮件发送错误！");
       console.log("邮件发送错误！");

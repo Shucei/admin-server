@@ -196,7 +196,6 @@ const getPermissionPoints = async (ctx) => {
     ctx.roleIds.forEach(roleId => {
       // 这里始终找不到，因为roleId是字符串，而_id是数字,所以要转化一下
       const currentRole = roles.find(item => item._id.toString() === roleId.toString())
-      console.log('currentRole', currentRole);
       if (currentRole) {
         currentRole.permIds.forEach(id => {
           pList.add(id)

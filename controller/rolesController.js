@@ -25,7 +25,7 @@ class RolesInstance {
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
+      res.status(500).json({ status: 500, error: err, message: Message.SERVER_ERROR })
     }
   }
 

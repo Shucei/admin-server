@@ -3,7 +3,7 @@ let secret = "shujingshishuaiguo"; //私钥
 class jwtInstance {
   static jwt = new jwtInstance()
   // 生成token
-  generateToken (id, res) {
+  generateToken (id) {
     let payload = { id };
     let token = jwt.sign(payload, secret, { expiresIn: 60 * 60 * 24 }); //设置一个小时
     return token;

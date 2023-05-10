@@ -1,6 +1,6 @@
-const { body, param } = require('express-validator') //校验
+const { param } = require('express-validator') //校验body
 const validate = require('./errorBack') // 统一处理校验
-const { Article } = require('../../model/MongoTable')
+
 
 
 module.exports.validatorId = validate(
