@@ -5,11 +5,12 @@ const router = require('./router')
 const app = express()
 
 //socket框架
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({
-  port: 8081
-});
-require('./utils/socket')(wss)
+
+const wsModule = require('./utils/socket')
+wsModule.wss
+
+
+
 
 
 

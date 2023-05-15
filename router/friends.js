@@ -12,7 +12,8 @@ router
   .get('/:id', jwt, friendController.getDetails) //获取好友信息
   .post('/update', jwt, friendController.UpdateRemarks) //修改好友备注
   .post('/status', jwt, friendController.Refuse) // 拒绝好友或者同意好友
+  .post('/lastmessage', jwt, friendController.getLastMessageAndUnreadCount) //获取最后一条消息
   .post('/send', jwt, friendController.sendMessage) //发送消息
-  .get('/message', jwt, friendController.getMessage) //获取消息
+  .post('/message', jwt, friendController.getMessage) //获取消息
   .put('/upmessage', jwt, friendController.updateMessage) //修改消息状态
 module.exports = router

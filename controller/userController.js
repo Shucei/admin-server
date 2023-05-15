@@ -73,30 +73,69 @@ class UserInstance {
    * 获取用户列表
    */
   async getlList (req, res) {
-    // 进行分页处理
+    // // 进行分页处理
     const { page = 1, pageSize = 10 } = req.query
     const limit = Number(pageSize)
     const skip = (page - 1) * pageSize
+    // try {
+    //   let data = await User.find({}, { _id: 1, username: 1, profile: 1, mobile: 1, headimg: 1, role: 1, createTime: 1, roleIds: 1 }).skip(skip).limit(limit).lean()
+    //   let roleName = []
+    //   // data是一个mongoose对象，所以要转换成json对象，才能改变
+    //   // 通过roleid将role表中的name取出来，然后添加到data中，返回给前端,用于显示角色名称，当roleIds中存储的是id时可以这样获取name
+    //   // data = data.map(item => item.toJSON())
+
+    //   for (let i = 0; i < data.length; i++) {
+    //     for (let j = 0; j < data[i].roleIds.length; j++) {
+    //       if (data[i].roleIds[j]) {
+    //         const role = await Role.findById(data[i].roleIds[j], { name: 1 })
+    //         if (role) {
+    //           roleName.push(role.name)
+    //         }
+    //       }
+    //     }
+    //     data[i].roleName = roleName
+    //     roleName = []
+    //   }
+    //   const total = await User.countDocuments()
+    //   res.status(200).json({ data: data, total, status: 200, message: '获取成功' })
+    // } catch (error) {
+    //   res.status(500).json({ error, status: 500, message: '出现了一些问题，请稍后再试' });
+    // }
     try {
-      let data = await User.find({}, { _id: 1, username: 1, profile: 1, mobile: 1, headimg: 1, role: 1, createTime: 1, roleIds: 1 }).skip(skip).limit(limit)
-      let roleName = []
-      // data是一个mongoose对象，所以要转换成json对象，才能改变
-      // 通过roleid将role表中的name取出来，然后添加到data中，返回给前端,用于显示角色名称，当roleIds中存储的是id时可以这样获取name
-      data = data.map(item => item.toJSON())
-      for (let i = 0; i < data.length; i++) {
-        for (let j = 0; j < data[i].roleIds.length; j++) {
-          if (data[i].roleIds[j]) {
-            const role = await Role.findById(data[i].roleIds[j], { name: 1 })
-            if (role) {
-              roleName.push(role.name)
-            }
+      // aggregate的用法，aggregate是聚合管道，可以将多个操作放在一起执行，比如下面的$lookup和$project
+      const users = await User.aggregate([
+        {
+          // $lookup是将两个表进行关联，这里是将user表和role表进行关联，然后将role表中的name取出来
+          $lookup: {
+            from: 'roles', //role表,这里的role是数据库中的表名，不是model中的表名，model中的表名是Role，数据库中的表名是roles
+            localField: 'roleIds', //user表中的roleIds
+            foreignField: '_id', //role表中的_id
+            as: 'roles' //将role表中的name取出来，然后放到roles中
           }
+        },
+        //$project的用法，$project是将查询出来的数据进行筛选，只返回需要的数据，比如下面的_id:1，username:1等
+        {
+          $project: {
+            _id: 1,
+            username: 1,
+            profile: 1,
+            mobile: 1,
+            headimg: 1,
+            createTime: 1,
+            roleIds: 1,
+            roleName: '$roles.name' //这里的$roles.name是上面$lookup中的as: 'roles'，然后再取name
+          }
+        },
+        // Skip and limit stage for pagination
+        {
+          $skip: skip
+        },
+        {
+          $limit: limit
         }
-        data[i].roleName = roleName
-        roleName = []
-      }
-      const total = await User.countDocuments()
-      res.status(200).json({ data: data, total, status: 200, message: '获取成功' })
+      ]);
+      const total = await User.countDocuments();
+      res.status(200).json({ data: users, total, status: 200, message: '获取成功' });
     } catch (error) {
       res.status(500).json({ error, status: 500, message: '出现了一些问题，请稍后再试' });
     }

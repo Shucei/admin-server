@@ -29,7 +29,7 @@ const userSchema = new Schema({
   }], // 角色表
   friendsID: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Friend'
   }], // 好友表
   ...baseModel
 });
@@ -116,7 +116,6 @@ const FriendSchema = new Schema({
   friendID: { type: Schema.Types.ObjectId, ref: "User" }, //好友id
   status: { type: String }, //好友状态(0-待确认，1-已确认)
   markname: { type: String }, //备注
-
   ...baseModel,//最后通讯时间
 });
 
@@ -145,15 +144,24 @@ const GroupUserSchema = new Schema({
   ...baseModel, // 加入时间，最后通讯时间
 });
 
-//消息表
+// 群消息表
 const MsgSchema = new Schema({
   sender_id: { type: Schema.Types.ObjectId, ref: "User" }, //发送者id
-  receiver_id: { type: Schema.Types.ObjectId, ref: "User" }, //接收者id
   group_id: { type: Schema.Types.ObjectId, ref: "Group" }, //群id(如果是群消息)
   content: { type: String }, //内容
   types: { type: String }, //内容类型(0文字，1图片链接，2音频链接)
   time: { type: Date, default: Date.now() }, //发送时间
-  tip: { type: Number, default: 0 }, //未读消息数，0未读，1已读
+  status: { type: String }, //消息状态(0已读，1未读)
+});
+
+// 一对一消息表
+const MessageSchema = new Schema({
+  sender_id: { type: Schema.Types.ObjectId, ref: 'User' },//发送者id
+  receiver_id: { type: Schema.Types.ObjectId, ref: 'User' },//接收者id
+  content: { type: String }, //内容
+  types: { type: String }, //内容类型(0文字，1图片链接，2音频链接)
+  status: { type: String }, //消息状态(0未读，1已读)
+  time: { type: Date, default: Date.now() }, //发送时间
 });
 
 
@@ -165,10 +173,9 @@ module.exports = {
   Group: db.model("Group", GroupSchema),
   GroupUser: db.model("GroupUser", GroupUserSchema),
   MsgSchema: db.model("GroupMsg", MsgSchema),
+  MessageSchema: db.model("Message", MessageSchema),
   Permission: db.model('Permission', permissionsSchema),
   Role: db.model('Roles', roles),
   Article: db.model('Article', articleSchema),
   Comments: db.model('Comments', comments)
-  // RolePermission: db.model('RolePermission', rolePermissionSchema),
-  // UserRoleSchema: db.model('UserRoleSchema', userRoleSchema),
 }

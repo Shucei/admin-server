@@ -6,7 +6,7 @@ const { Friend, User } = require('../../model/MongoTable')
 module.exports.createFriend = validate(
   [
     body('userID')
-      .notEmpty().withMessage('错误参数')
+      .notEmpty().withMessage('错误参数').bail()
       .custom(async (userID, { req }) => {
         const friendID = req.body.friendID;
         const result = await Friend.find({
@@ -17,7 +17,7 @@ module.exports.createFriend = validate(
         });
         if (result.length && result[0].status == '0') {
           return Promise.reject('请勿重复添加~');
-        } else {
+        } else if (result.length && result[0].status == '1') {
           return Promise.reject('已是好友~');
         }
       }).bail(),
