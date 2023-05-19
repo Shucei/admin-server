@@ -20,7 +20,8 @@ exports.storage = multer.diskStorage({
     let type = file.originalname.replace(/.+\./, ".");
     if (req.url === "/headimg") {
       cb(null, req.user._id + type);
-    } else {
+    }
+    else {
       // 通过正则改变文件名字
       cb(null, Date.now() + type);
     }

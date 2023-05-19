@@ -2,7 +2,7 @@
 const { Friend, MessageSchema, User } = require('../model/MongoTable')
 const Message = require('../middleware/Message')
 const userSocketMap = require('../utils/socket').userSocketMap
-
+let url = require('url');
 class FriendInstance {
   static friendController = new FriendInstance()
   // 添加好友
@@ -121,9 +121,8 @@ class FriendInstance {
   async getLastMessageAndUnreadCount (req, res) {
     const { friendID, userID } = req.body
     try {
-      const lastMessage = await MessageSchema.findOne({ $or: [{ sender_id: friendID, receiver_id: userID }, { sender_id: userID, receiver_id: friendID }] }, { sender_id: 1, content: 1, types: 1, time: 1 }).sort({ time: -1 }).skip(1).limit(1)
+      const lastMessage = await MessageSchema.findOne({ $or: [{ sender_id: userID, receiver_id: friendID }, { sender_id: friendID, receiver_id: userID }] }, { sender_id: 1, content: 1, types: 1, time: 1 }).sort({ time: -1 }).limit(1)
       const unreadCount = await MessageSchema.countDocuments({ sender_id: friendID, receiver_id: userID, status: 0 }) // 只需要查询好友发给我的消息,并且状态为0的消息数量，因为我发给好友的消息，好友已经读取了，所以不需要查询，也不需要统计，所以这里的查询条件是sender_id:friendID,receiver_id:userID,status:0
-      console.log(lastMessage);
       res.status(200).json({ status: 200, message: '获取成功', data: { lastMessage, unreadCount } })
     } catch (error) {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
@@ -136,7 +135,9 @@ class FriendInstance {
   async getDetails (req, res) {
     const { id } = req.params
     try {
-      const data = await Friend.findById(id)
+      const data = await User.findById(id, { role: 0, password: 0, createTime: 0, updataTime: 0, __v: 0, friendsID: 0, roleIds: 0, label: 0, code: 0 }).lean()
+      const online = checkUserOnlineStatus(id)
+      data.online = online
       res.status(200).json({ status: 200, message: '好友信息获取成功', data })
     }
     catch (error) {
@@ -259,6 +260,28 @@ class FriendInstance {
     }
     catch (error) {
       res.status(500).json({ status: 500, error, message: Message.SERVER_ERROR })
+    }
+  }
+
+
+  /**
+   * 图片上传
+   */
+
+  async upload (req, res) {
+    console.log('req', req.file);
+    const imageUrl = url.format({
+      protocol: req.protocol,
+      hostname: req.hostname,
+      port: req.socket.localPort,
+      pathname: req.file.path.replace(/^\/+/g, '')
+    });
+    // console.log(path.join(process.cwd(), req.file.path))
+    try {
+      // rename(`./public/${req.url}` + req.file.filename, `./public/${req.url}` + req.file.filename + format) //修改文件名
+      res.status(200).json({ imageUrl, message: '上传成功' })
+    } catch (err) {
+      res.status(500).json({ error: err, message: Message.SERVER_ERROR })
     }
   }
 }

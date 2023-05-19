@@ -28,7 +28,7 @@ wss.on('connection', function (socket, request) {
         const receiverId = data.receiver_id;
         const senderId = data.user_id;
         // 1. 保存消息到数据库
-        sendMessage({ sender_id: senderId, receiver_id: receiverId, content: data.content, types: '0' })
+        sendMessage({ sender_id: senderId, receiver_id: receiverId, content: data.content, types: data.types })
         // 2. 将消息发送给指定用户
         const receiverSocket = userSocketMap.get(receiverId);
         if (receiverSocket) {

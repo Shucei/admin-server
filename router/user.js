@@ -5,7 +5,7 @@ const validator = require('../middleware/validator/Uservalidator')
 const jwt = require('../utils/jwt').verifyToken
 const multer = require("multer"); //上传文件
 const file = require('../utils/file') //配置上传的路径及文件夹，文件名
-const upload = multer({ storage: file.storage, dest: 'public/' });
+const upload = multer({ storage: file.storage, dest: 'public/' }); //配置上传的路径及文件夹，文件名
 
 // 校验规则
 /**

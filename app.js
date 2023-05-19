@@ -9,12 +9,8 @@ const app = express()
 const wsModule = require('./utils/socket')
 wsModule.wss
 
-
-
-
-
-
-app.use(express.static(__dirname + '/public'))
+// app.use(express.static(__dirname + '/public')) // 静态资源
+app.use("/public", express.static(__dirname + "/public"));
 const bodyParser = require("body-parser");// 引入前端req.body插件
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
